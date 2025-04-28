@@ -1,1 +1,1 @@
-# JavaApp
+# java-app-ci-cd

@@ -40,3 +40,5 @@ jobs:
     - name: Debug - Check if JAR file exists
       run: ls -la build/libs/
 
+    - name: Build and Push Docker Image
+      uses: mr-smithers-excellent/docker-build-push@v4

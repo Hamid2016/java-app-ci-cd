@@ -1,0 +1,75 @@
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-java:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code with proper permissions
+      uses: actions/checkout@v4
+      with:
+        persist-credentials: false  # Better security for non-root
+        filter: blob:none          # More efficient checkout
+        sparse-checkout: |         # Only get necessary files
+          .gradle/
+          gradle/
+          gradlew
+          gradlew.bat
+          build.gradle
+          src/
+
+    - name: Verify file permissions
+      run: |
+        ls -la
+        ls -la gradlew
+        stat gradlew  # Detailed permission check
+
+    - name: Fix gradlew permissions
+      run: |
+        chmod 755 gradlew
+        chmod 755 gradlew.bat
+        # Verify the changes
+        ls -l gradlew
+        ./gradlew --version || echo "Gradle wrapper test failed"
+
+    - name: Set up JDK 8 (non-root compatible)
+      uses: actions/setup-java@v3
+      with:
+        java-version: '8'
+        distribution: 'temurin'
+        cache: 'gradle'  # Better caching for non-root
+
+    - name: Build with Gradle (non-root)
+      run: |
+        # Use explicit path to avoid permission issues
+        ./gradlew build --no-daemon --stacktrace --info
+        # Clean up gradle cache
+        rm -rf ~/.gradle/caches/
+
+    - name: Docker setup (non-root)
+      if: success()
+      uses: docker/setup-buildx-action@v2
+      with:
+        driver-opts: |
+          image=moby/buildkit:master-rootless
+
+    - name: Login to Docker Hub (non-root)
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and Push Docker Image (non-root)
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: nanajanashia/demo-app:latest
+        builder: ${{ steps.buildx.outputs.name }}
+        platforms: linux/amd64

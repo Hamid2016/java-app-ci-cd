@@ -42,11 +42,3 @@ jobs:
 
     - name: Verify build output (Check if JAR file exists)
       run: ls -la build/libs/  # Ensures JAR file is present before Docker build
-
-    - name: Build and Push Docker Image
-      uses: mr-smithers-excellent/docker-build-push@v4
-      with:
-        image: ${{ secrets.DOCKER_USERNAME }}/demo-app
-        registry: docker.io
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}

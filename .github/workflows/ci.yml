@@ -28,10 +28,10 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew build
 
-    - name: Build and Push Docker Image
+    - name: Build & push Docker image
       uses: mr-smithers-excellent/docker-build-push@v6
       with:
-        image: hamisadeghiengineering/demo-app
+        image: ${{ secrets.DOCKER_USERNAME }}/demo-app
         tags: v1, latest
         registry: docker.io
         dockerfile: Dockerfile
